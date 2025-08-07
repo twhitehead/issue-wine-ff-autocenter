@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.7)
+
+project(test C)
+
+add_executable(ffdefault WIN32 ffdefault.c)
+target_link_libraries(ffdefault dinput8.lib dxguid.dll)
+
+install(TARGETS ffdefault)
