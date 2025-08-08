@@ -146,3 +146,12 @@ your device is being accessed via udev HIDRAW (note the `udev_add_device`, that 
 00bc:trace:hid:bus_main_thread creating hidraw device 045e:001b with usages 0001:0004
 00bc:trace:hid:bus_create_hid_device desc {vid 045e, pid 001b, version 0a00, input 0, uid 00000000, is_gamepad 0, is_hidraw 1, is_bluetooth 0}, unix_device 0x7e503200
 ```
+
+# Devices tested
+
+This is the status of devices tested so far. Submit a pull request to add your device or let me know and I will add
+it.
+
+| Device | PID:VID | Driver | Status |
+| -- | -- | -- | -- |
+| MS SideWinder FF 2 Joystick | 045e:001b | hid-pidff | Used to work for all. Now autocenter permanetly on for all but udev HIDRAW. |
