@@ -1,72 +1,42 @@
 # Summary
 
-This is a test program to verify correct operation of auto centering of force feedback devices under Windows and
+This is a test program to test the operation of auto centering of force feedback devices under Windows and
 Wine. A pre-compiled version is available in the `bin` folder.
 
-The program will cycle through all you force feedback devices popping up dialogues titled by the device
-that is being tested. The dialogues purposes are, in order,
+The program will query you about your system and then cycle throuh your force feedback devices popping up
+dialogues titled by the device that
 
-* report the initial value of `DIPROP_AUTOCENTER`,
-* pause after acquiring the device without setting `DIPROP_AUTOCENTER` so you can test your device,
-* pause after acquiring the device with `DIPROP_AUTOCENTER` to `DIPROPAUTOCENTER_OFF` so you can test your device,
-  and
-* pause after acquiring the device with `DIPROP_AUTOCENTER` to `DIPROPAUTOCENTER_ON` so you can test your device.
+* report if autocenter is intial set on or not (i.e., the initial value of `DIPROP_AUTOCENTER`),
+* ask if autocenter is on after acquiring the device without setting autocentering (i.e. `DIPROP_AUTOCENTER` left at initial value),
+* ask if autocenter is on after acquiring the device after setting autocentering off (i.e., `DIPROP_AUTOCENTER` set to `DIPROPAUTOCENTER_OFF`), and
+* ask if autocenter is on after acquiring the device after setting autocentering on (i.e., `DIPROP_AUTOCENTER` set to `DIPROPAUTOCENTER_ON`).
 
-# Upstream breakage
+A `ffdefault.log` file will be created in the directory the program is ran with the results.
 
-I hacked together this program as I believe [merge request
-8605](https://gitlab.winehq.org/wine/wine/-/merge_requests/8605) (which was merged) broke `DIPROP_AUTOCENTER`
-support in almost all cases. Others disagree. The problem is none of us have a bunch of devices to test. With this
-program people can test their devices and report back so we know what is the case
-
-My expectation is that, for devices that udev HIDRAW doesn't work (e.g., so udev input or SDL are the only option)
-* all non-HID driver devices for which the kernel driver supported auto center (e.g., the I-FORCE) are now broken
-  with respect to `DIPROP_AUTOCENTER` for all input methods
-
-with respect to devices where udev HIDRAW wouldn't work with auto center, but udev input or SDL would (e.g., devices
-that that don't turn auto center on on reset and off on stop all effects)
-* all HID non-pidff driver devices for which the kernel driver supports auto center (e.g., the Logitech WingMan Force)
-  are now broken with respect to `DIPROP_AUTOCENTER` for all input methods
-
-and with respect to devices where udev HIDRAW does work with auto center (e.g., devices that do turn auto center on
-on reset and off on stop all effects
-* all HID pdiff driver devices for which the kernel driver supported auto center (e.g., the USB SideWinder 2) are
-  broken with respect to `DIPROP_AUTOCENTER` for all input methods but udev HIDRAW
+Please run this under Windows and Wine and send me the `ffdefault.log` files (open a pull request to add it, open
+an issue to report it, or just email it to my twhitehead gmail email address) along with any other details you feel
+may be pertinent.
 
 # Correct operation
 
-* when `DIPROP_AUTOCENTER` is not set by the program, the device should exhibit which ever behaviour is the default
-  upon being acquired (the default can be obtained by querying the `DIPROP_AUTOCENTER` property),
-* when `DIPROP_AUTOCENTER` is set to `DIPROPAUTOCENTER_OFF`, the device should not exhibit auto centering behaviour
-  upon being acquired, and
-* when `DIPROP_AUTOCENTER` is set to `DIPROPAUTOCENTER_ON`, the device should exhibit auto centering
-  behaviour upon being acquired.
+A device is working 100% correctly with respect to `DIPROP_AUTOCENTER` will
 
-The initial value of `DIPROP_AUTOCENTER` should also agree between Windows and Wine. This is required as some
-programs may assume the Windows initial value instead of checking and setting it. These programs will be broken
-if Wine has a different initial value.
+* have the same intial autocentering setting under Windows and Wine,
+* autocenter or not for the first test according to the initial value,
+* not autocenter for the second test as it was explicitly turned off, and
+* autocenter for the third test as it was explicitly turned on.
 
-# Verifying your device
+Agreement on the initial value is important as some programs may assume the Windows initial value instead of
+checking and setting it. These programs will be broken if Wine has a different initial value.
 
-Wine has three different ways of getting input. For each of these (see below for how to choose which one)
-run the program and
+I expect some devices will be broken with respect to the initial value as the initial value for Wine is on for all
+devices (as of 2025-08-05) because that is what it was for the one device I had to test when I implemented
+it. Reporting your device will allow me to set the correct initial value for your device too.
 
-* note the default shown in the first dialogue box,
-* verify auto center is acting accordingly when the second dialogue box is up,
-* verify auto center is off when the third dialogue box is up, and
-* verify auto center is on when the fourth dialogue box is up, and
-
-Note that the merge request I believe broke everything was merged on 2026-08-06, so you need to test with a wine
-version newer than that in order to determine if it has indeed broken your device (or fixed it).
-
-If you have Windows as well, run the program under Windows and check that the default shown in the first
-dialogue box matches what is shown when ran under Wine. Please report any wrong behaviour or discrepancies
-between Windows and Wine for the default setting.
-
-# Wine bus
+# Wine backend
 
 Wine can get device input from three sources in Linux: SDL, udev input, and udev HIDRAW. To fully test your
-device you need control which of these are enabled.
+device you need to control which of these are enabled.
 
 ## SDL
 
@@ -147,11 +117,41 @@ your device is being accessed via udev HIDRAW (note the `udev_add_device`, that 
 00bc:trace:hid:bus_create_hid_device desc {vid 045e, pid 001b, version 0a00, input 0, uid 00000000, is_gamepad 0, is_hidraw 1, is_bluetooth 0}, unix_device 0x7e503200
 ```
 
+# Upstream issue
+
+I hacked together this program due to [merge request
+8605](https://gitlab.winehq.org/wine/wine/-/merge_requests/8605). This merge request (which was merged) removed
+autocenter support from the udev input and SDL backends. I believe this was done to force autocenter off on the
+merge request's author's device. His arguement was that it was irreparably broken.
+
+I believe it was just a wrong default value for his device and would like to restore autocenter support from the
+udev input and SDL backends. As I only have access to one force feedback device to test though I cannot verify
+what the states of all the devices out there are.
+
+That is where you come in. By testing your device and reporting back, I can learn what the actual states of
+all the devices are (is it irreparibly broken or not) and hopefully restore autocenter support to the wine
+with whatever fixes are required to make it work for everyone's devices.
+
+Thanks in advance for helping!
+
 # Devices tested
 
-This is the status of devices tested so far. Submit a pull request to add your device or let me know and I will add
-it.
+This is a summary of devices tested so far. Run the program under Windows and Wine (ideally all backends). Send me
+the `ffdefault.log` files (pull request, issue, email to my twhitehead gmail email address) along with any other
+details you feel may be pertinent and I'll add your device.
 
-| Device | PID:VID | Driver | Status |
-| -- | -- | -- | -- |
-| MS SideWinder FF 2 Joystick | 045e:001b | hid-pidff | Used to work for all. Now autocenter permanetly on for all but udev HIDRAW. |
+## Wine 10.2 or older (before [4911](https://gitlab.winehq.org/wine/wine/-/merge_requests/8605))
+
+| Device | PID:VID | Backend | Windows Initial | Wine Initial | Test Initial | Test OFF | Test ON | Overall |
+| -- | -- | -- | -- | -- | -- | -- | -- | -- |
+| MS SideWinder FF 2 Joystick | 045e:001b | SDL | ON | ON | ON | OFF | ON | PASS |
+| MS SideWinder FF 2 Joystick | 045e:001b | udev input | ON | ON | ON | OFF | ON | PASS |
+| MS SideWinder FF 2 Joystick | 045e:001b | udev hidraw | ON | ON | ON | OFF | ON | PASS |
+
+## Wine 10.3 or newer (after [4911](https://gitlab.winehq.org/wine/wine/-/merge_requests/8605))
+
+| Device | PID:VID | Backend | Windows Initial | Wine Initial | Test Initial | Test OFF | Test ON | Overall |
+| -- | -- | -- | -- | -- | -- | -- | -- | -- |
+| MS SideWinder FF 2 Joystick | 045e:001b | SDL | ON | ON | ON | ON | ON | FAIL |
+| MS SideWinder FF 2 Joystick | 045e:001b | udev input | ON | ON | ON | ON | ON | FAIL |
+| MS SideWinder FF 2 Joystick | 045e:001b | udev hidraw | ON | ON | ON | OFF | ON | PASS |
