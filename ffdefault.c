@@ -7,7 +7,7 @@
 #include <dinput.h>
 
 
-char message[100];
+char message[1024];
 FILE* logfile;
 IDirectInput8 *dinput;
 HWND hwindow;
@@ -27,7 +27,12 @@ BOOL CALLBACK enum_devices_callback(const DIDEVICEINSTANCE *instance, void *cont
 
   // Log device
   sprintf_s(message, sizeof(message)/sizeof(message[0]),
-            "FFDEFAULT: Product name: %s\n", instance->tszProductName);
+            "FFDEFAULT: Product name: %s\n"
+            "FFDEFAULT: Device type (sub/primary): 0x%02x/0x%02x\n"
+            "FFDEFAULT: HID usage (page/usage): 0x%02x/0x%02x\n",
+            instance->tszProductName,
+            GET_DIDEVICE_SUBTYPE(instance->dwDevType), GET_DIDEVICE_TYPE(instance->dwDevType),
+            instance->wUsagePage, instance->wUsage);
   if (logfile) fputs(message, logfile);
   OutputDebugString(message);
 
